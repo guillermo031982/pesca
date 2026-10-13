@@ -12,7 +12,8 @@ const guardar=c=>tx('readwrite',s=>s.put(c)), todas=()=>tx('readonly',s=>s.getAl
 function ir(id,tab){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!==id);document.body.classList.toggle('dk',id==='s-cam');
  document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('on'));
  if(id==='s-cam'){$('#n-cam').classList.add('on');reset()}
- if(id==='s-hist'){verHist(tab||'L')}scrollTo(0,0)}
+ if(id==='s-hist'){verHist(tab||'L')}
+ if(id==='s-nudos'||id==='s-nudo')$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)ir(g.dataset.go,g.dataset.tab)});
 function toast(m,ms=2800){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,ms)}
 

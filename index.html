@@ -46,7 +46,16 @@
 </section>
 <!-- Detalle -->
 <section id="s-det" class="scr" hidden><div class="hd"><span data-go="s-hist">‹</span> Captura</div><div id="det"></div></section>
-<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div></nav>
+<!-- Nudos -->
+<section id="s-nudos" class="scr" hidden>
+ <div class="hd">Nudos de pesca</div>
+ <div style="margin:0 18px 10px"><input class="inp" id="nBuscar" type="search" placeholder="🔍 Buscar nudo o uso…"></div>
+ <div class="chips fil" id="nFiltro"></div>
+ <div id="nLista"></div>
+</section>
+<section id="s-nudo" class="scr" hidden><div class="hd"><span data-go="s-nudos" style="cursor:pointer">‹</span> <span id="nTit"></span></div><div id="nDet"></div></section>
+<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div><div data-go="s-nudos" id="n-nudos"><b>🪢</b>Nudos</div></nav>
 <div id="toast" hidden></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js"></script></body></html>
+<script src="app.js"></script>
+<script src="nudos.js"></script></body></html>
