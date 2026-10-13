@@ -54,3 +54,16 @@ body.dk{background:#06141d}
 .pctl{display:flex;gap:10px}.pctl button{flex:1;height:60px;border-radius:16px;border:2px solid #0077b6;background:#fff;color:#0077b6;font-size:24px;font-weight:bold}
 .pctl .pmain{background:#0077b6;color:#fff;flex:1.4}.pctl .pvel{font-size:20px}
 .pasos li{cursor:pointer;transition:background .3s}.pasos li.act{background:#e3f1f8;border-radius:12px}.pasos li.act:before{background:#ffb703;color:#0b2a3f}
+
+.mlab{display:flex;align-items:center;gap:8px}.ibtn{width:36px;height:36px;border-radius:50%;border:2px solid #0077b6;background:#fff;color:#0077b6;font-size:18px;font-weight:bold}
+.msel{margin-top:8px}.msel button{font-size:15px;padding:12px 14px}
+.lnk{background:none;border:0;color:#0077b6;font-size:16px;font-weight:bold;padding:10px 0;text-decoration:underline}
+.hfil{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.hfil button{white-space:nowrap;flex:none}
+.gmi{width:96px;flex:none;border-radius:10px;overflow:hidden}.gmi svg{display:block;width:100%;height:auto}
+#hoja{position:fixed;inset:0;z-index:3000}.hojabg{position:absolute;inset:0;background:#0b2a3f88}
+.hojac{position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:auto;max-height:88vh;overflow:auto;background:#f4f8fb;border-radius:22px 22px 0 0;padding:20px 18px 30px}
+.hojax{position:sticky;top:0;float:right;width:44px;height:44px;border-radius:50%;border:0;background:#dde7ee;font-size:20px;z-index:2}
+.mtit{font-size:24px;font-weight:bold;margin:4px 0 12px}.msvg{border-radius:14px;overflow:hidden;margin-bottom:12px}.msvg svg{display:block;width:100%;height:auto}
+.mrec{list-style:none;padding:0}.mrec li{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:16px}.mtx{font-size:16px;line-height:1.45}
+.asq{font-size:22px;font-weight:bold;margin:6px 0 14px}.asop{display:block;width:100%;text-align:left;min-height:60px;margin-bottom:10px;padding:12px 16px;border-radius:16px;border:2px solid #c9d7e1;background:#fff;font-size:18px;color:#0b2a3f}
+.asop:active{border-color:#0077b6;background:#e3f1f8}

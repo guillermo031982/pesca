@@ -92,7 +92,7 @@ function detalle(id){const k=N.find(x=>x.id===id);document.querySelectorAll('.sc
  <div class="consejo">💧 Humedece siempre el nudo con agua o saliva antes de apretar, y comprueba tirando fuerte. La resistencia es aproximada y depende de la línea y de lo bien hecho que esté.</div>
  <div class="small" style="text-align:center;margin:10px 18px">Azul: línea principal · Naranja: segunda línea / bajo · Gris: anzuelo, anilla o bobina</div>`;Player.start(k)}
 document.addEventListener('click',e=>{const f=e.target.closest('#nFiltro button');if(f){filtro=f.dataset.f;verNudos()}
- const k=e.target.closest('.nk');if(k)detalle(k.dataset.k)});
+ const k=e.target.closest('.nk[data-k]');if(k)detalle(k.dataset.k)});
 document.addEventListener('input',e=>{if(e.target.id==='nBuscar')verNudos()});
 window.NUDOS=N;
 /* ---------- Reproductor animado (dibujo progresivo de la línea) ---------- */

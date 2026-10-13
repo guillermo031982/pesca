@@ -25,6 +25,7 @@
   <div class="lab">Especie</div><input class="inp" id="esp" list="esplist" placeholder="Nombre del pez"><datalist id="esplist"></datalist>
   <div class="lab">Talla (cm) · opcional</div><input class="inp" id="talla" type="text" inputmode="decimal" placeholder="Ej. 34">
   <div class="lab">Peso (kg) · opcional</div><input class="inp" id="peso" type="text" inputmode="decimal" placeholder="Ej. 1,2">
+  <div class="lab mlab">Modalidad · opcional <button class="ibtn" id="modInfo" type="button" aria-label="¿Qué es cada modalidad?">ⓘ</button></div><div class="chips msel" id="modSel"></div><button type="button" class="lnk" id="modAsis">🧭 No sé qué modalidad hago</button>
   <div class="lab">Nota · opcional</div><input class="inp" id="nota" placeholder="Cebo, aparejo…">
  </div>
  <button class="btn green" id="saveBtn">💾 GUARDAR</button>
@@ -40,22 +41,32 @@
 <!-- 4/5 Historial -->
 <section id="s-hist" class="scr" hidden>
  <div class="hd">Historial <button class="csv" id="csvBtn">⬇ CSV</button></div>
+ <div class="chips fil hfil" id="hFiltro"></div>
  <div class="seg"><div id="tabL" class="on">Lista</div><div id="tabM">Mapa</div></div>
  <div id="list"></div>
  <div id="mapwrap" hidden><div id="map"></div></div>
 </section>
 <!-- Detalle -->
 <section id="s-det" class="scr" hidden><div class="hd"><span data-go="s-hist">‹</span> Captura</div><div id="det"></div></section>
+<!-- Guía -->
+<section id="s-guia" class="scr" hidden>
+ <div class="hd">Guía</div>
+ <div class="card nk" data-go="s-nudos"><h3>🪢 Nudos de pesca</h3><div class="small">11 nudos paso a paso con animación.</div></div>
+ <div class="card nk" data-go="s-guiamod"><h3>🎣 Modalidades de pesca</h3><div class="small">Qué es cada una, cómo reconocerla, equipo y especies en Canarias.</div></div>
+ <div class="card nk" id="gAsis"><h3>🧭 No sé qué modalidad hago</h3><div class="small">Responde 2–3 preguntas y te lo decimos.</div></div>
+</section>
+<section id="s-guiamod" class="scr" hidden><div class="hd"><span data-go="s-guia" style="cursor:pointer">‹</span> Modalidades</div><div id="gmLista"></div></section>
 <!-- Nudos -->
 <section id="s-nudos" class="scr" hidden>
- <div class="hd">Nudos de pesca</div>
+ <div class="hd"><span data-go="s-guia" style="cursor:pointer">‹</span> Nudos de pesca</div>
  <div style="margin:0 18px 10px"><input class="inp" id="nBuscar" type="search" placeholder="🔍 Buscar nudo o uso…"></div>
  <div class="chips fil" id="nFiltro"></div>
  <div id="nLista"></div>
 </section>
 <section id="s-nudo" class="scr" hidden><div class="hd"><span data-go="s-nudos" style="cursor:pointer">‹</span> <span id="nTit"></span></div><div id="nDet"></div></section>
-<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div><div data-go="s-nudos" id="n-nudos"><b>🪢</b>Nudos</div></nav>
+<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div><div data-go="s-guia" id="n-nudos"><b>📖</b>Guía</div></nav>
 <div id="toast" hidden></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js"></script>
-<script src="nudos.js"></script></body></html>
+<script src="nudos.js"></script>
+<script src="modalidades.js"></script></body></html>

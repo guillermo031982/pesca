@@ -13,7 +13,7 @@ function ir(id,tab){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!=
  document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('on'));
  if(id==='s-cam'){$('#n-cam').classList.add('on');reset()}
  if(id==='s-hist'){verHist(tab||'L')}
- if(id==='s-nudos'||id==='s-nudo')$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();scrollTo(0,0)}
+ if(['s-guia','s-guiamod','s-nudos','s-nudo'].includes(id))$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();if(id==='s-guiamod'&&window.verGuiaMod)verGuiaMod();scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)ir(g.dataset.go,g.dataset.tab)});
 function toast(m,ms=2800){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,ms)}
 
@@ -27,7 +27,7 @@ function pintarChips(){$('#chips').innerHTML=ESPECIES.slice(0,12).map(e=>`<butto
 $('#chips').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;especieSel=e.target.textContent;pintarChips();$('#okBtn').disabled=false});
 $('#okBtn').onclick=()=>abrirFicha(especieSel);
 $('#manBtn').onclick=()=>abrirFicha('',true);
-function abrirFicha(esp,foco){ir('s-ficha');$('#fimg').src=foto||'';$('#fimg').hidden=!foto;$('#esp').value=esp;if(foco)setTimeout(()=>$('#esp').focus(),50)}
+function abrirFicha(esp,foco){ir('s-ficha');window.modFicha&&modFicha.reset();$('#fimg').src=foto||'';$('#fimg').hidden=!foto;$('#esp').value=esp;if(foco)setTimeout(()=>$('#esp').focus(),50)}
 
 /* Punto de enchufe para un modelo de visión.
    Debe devolver [{nombre,confianza}] ordenado o [] si no hay modelo.
@@ -59,12 +59,12 @@ function luna(d=new Date()){const S=29.530588853,ref=Date.UTC(2000,0,6,18,14);le
 /* ---------- 2 Guardar ---------- */
 $('#saveBtn').onclick=async()=>{const esp=$('#esp').value.trim();if(!esp){toast('Escribe o elige la especie');$('#esp').focus();return}
  const b=$('#saveBtn');b.disabled=true;b.textContent='⏳ Guardando…';const ahora=new Date();
- const c={id:ahora.getTime()+'',fecha:ahora.toISOString(),especie:esp,talla:num('#talla'),peso:num('#peso'),nota:$('#nota').value.trim(),foto,luna:luna(ahora),gps:null,zona:'',marea:null,errores:[]};
+ const c={id:ahora.getTime()+'',fecha:ahora.toISOString(),especie:esp,talla:num('#talla'),peso:num('#peso'),nota:$('#nota').value.trim(),modalidad:(window.modFicha&&modFicha.get())||'',foto,luna:luna(ahora),gps:null,zona:'',marea:null,errores:[]};
  try{const p=await gps();c.gps={lat:+p.latitude.toFixed(5),lon:+p.longitude.toFixed(5),precision:Math.round(p.accuracy)};
   const [z,m]=await Promise.allSettled([zona(c.gps.lat,c.gps.lon),marea(c.gps.lat,c.gps.lon,ahora)]);c.zona=z.value||'';
   if(m.status==='fulfilled')c.marea=m.value;else c.errores.push('Marea: '+(m.reason.message||'sin conexión'))}
  catch(e){c.errores.push('GPS: '+(e.message||'permiso denegado'))}
- await guardar(c);ultimo=c;b.disabled=false;b.textContent='💾 GUARDAR';confirmar(c)};
+ await guardar(c);window.modFicha&&modFicha.recordar();ultimo=c;b.disabled=false;b.textContent='💾 GUARDAR';confirmar(c)};
 const num=s=>{const v=parseFloat($(s).value.replace(',','.'));return isNaN(v)?null:v};
 
 /* ---------- 3 Confirmación / detalle ---------- */
@@ -73,7 +73,7 @@ const fechaTxt=iso=>new Date(iso).toLocaleDateString('es-ES',{day:'2-digit',mont
 const sub=c=>[c.especie,c.talla&&c.talla+' cm',c.peso&&String(c.peso).replace('.',',')+' kg'].filter(Boolean).join(' · ');
 function filas(c){const m=c.marea,R=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
  return (m?R('🌊 Marea',m.estado+(m.estado==='Subiendo'?' ↑':' ↓'))+(m.proxima?R('Próxima '+m.proxima.tipo.toLowerCase(),hora(m.proxima.hora)+' · '+fmt(m.proxima.altura)+' m'):'')+R('Altura ahora',fmt(m.altura)+' m'):R('🌊 Marea','No disponible'))
- +R(c.luna.icono+' Luna',c.luna.fase+' '+c.luna.iluminacion+' %')
+ +(c.modalidad?R('🎣 Modalidad',modNombre(c.modalidad)):'')+R(c.luna.icono+' Luna',c.luna.fase+' '+c.luna.iluminacion+' %')
  +R('📍 Zona',c.zona||'—')+R('Coordenadas',c.gps?`${Math.abs(c.gps.lat).toFixed(4)} ${c.gps.lat>=0?'N':'S'}, ${Math.abs(c.gps.lon).toFixed(4)} ${c.gps.lon>=0?'E':'O'}`:'Sin GPS')
  +R('🕒 Fecha',fechaTxt(c.fecha))+(c.nota?R('📝 Nota',esc(c.nota)):'')
  +(c.errores.length?`<div class="small" style="color:#c0392b;margin-top:8px">${c.errores.join('<br>')}</div>`:'')}
@@ -84,26 +84,31 @@ async function detalle(id){const c=(await todas()).find(x=>x.id===id);ir('s-det'
  $('#delBtn').onclick=async()=>{if(confirm('¿Borrar esta captura?')){await borrar(id);ir('s-hist')}}}
 
 /* ---------- 4/5 Historial ---------- */
-async function verHist(tab){const cs=(await todas()).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+let modFiltro='',tabAct='L';
+async function verHist(tab){tabAct=tab;const todasC=(await todas()).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+ const usadas=[...new Set(todasC.map(c=>c.modalidad||''))];if(modFiltro&&!usadas.includes(modFiltro))modFiltro='';
+ $('#hFiltro').hidden=usadas.length<2;$('#hFiltro').innerHTML=`<button data-mf="" class="${!modFiltro?'on':''}">Todas</button>`+usadas.filter(Boolean).map(m=>`<button data-mf="${m}" class="${m===modFiltro?'on':''}">${modNombre(m)}</button>`).join('')+(usadas.includes('')?`<button data-mf="-" class="${modFiltro==='-'?'on':''}">Sin modalidad</button>`:'');
+ const cs=todasC.filter(c=>!modFiltro||(modFiltro==='-'?!c.modalidad:c.modalidad===modFiltro));
  $('#tabL').classList.toggle('on',tab==='L');$('#tabM').classList.toggle('on',tab==='M');$('#list').hidden=tab!=='L';$('#mapwrap').hidden=tab!=='M';
  $(tab==='L'?'#n-hist':'#n-map').classList.add('on');$(tab==='L'?'#n-map':'#n-hist').classList.remove('on');
  $('#list').innerHTML=cs.length?cs.map(c=>`<div class="card it" data-id="${c.id}"><div class="fish">${c.foto?`<img src="${c.foto}">`:'🐟'}</div><div><h3>${esc(c.especie)}</h3>
  <div class="small">${[c.talla&&c.talla+' cm',c.peso&&fmt(c.peso)+' kg'].filter(Boolean).join(' · ')||'—'} · 📍 ${esc(c.zona||'Sin ubicación')}</div>
- <div class="small">${fechaTxt(c.fecha)} · ${c.marea?'🌊'+(c.marea.estado==='Subiendo'?'↑':'↓'):''} ${c.luna.icono}</div></div></div>`).join(''):'<div class="empty">Aún no hay capturas.<br>Pulsa 📷 Cámara para registrar la primera.</div>';
+ ${c.modalidad?`<div class="small">${modNombre(c.modalidad)}</div>`:''}<div class="small">${fechaTxt(c.fecha)} · ${c.marea?'🌊'+(c.marea.estado==='Subiendo'?'↑':'↓'):''} ${c.luna.icono}</div></div></div>`).join(''):'<div class="empty">Aún no hay capturas.<br>Pulsa 📷 Cámara para registrar la primera.</div>';
  if(tab==='M')pintarMapa(cs)}
 $('#list').addEventListener('click',e=>{const it=e.target.closest('.it');if(it)detalle(it.dataset.id)});
+$('#hFiltro').addEventListener('click',e=>{const b=e.target.closest('button');if(b){modFiltro=b.dataset.mf;verHist(tabAct)}});
 $('#tabL').onclick=()=>verHist('L');$('#tabM').onclick=()=>verHist('M');
 function pintarMapa(cs){if(!window.L){$('#map').innerHTML='<div class="empty">El mapa necesita conexión</div>';return}
  if(!mapa){mapa=L.map('map').setView([28.1,-15.6],8);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapa);capaPins=L.layerGroup().addTo(mapa)}
  setTimeout(()=>mapa.invalidateSize(),50);capaPins.clearLayers();const pts=[];
- cs.filter(c=>c.gps).forEach(c=>{pts.push([c.gps.lat,c.gps.lon]);L.marker([c.gps.lat,c.gps.lon]).bindPopup(`<b>${esc(sub(c))}</b><br>${esc(c.zona||'')}<br>${fechaTxt(c.fecha)}${c.marea?' · Marea '+c.marea.estado.toLowerCase():''}`).addTo(capaPins)});
+ cs.filter(c=>c.gps).forEach(c=>{pts.push([c.gps.lat,c.gps.lon]);L.marker([c.gps.lat,c.gps.lon]).bindPopup(`<b>${esc(sub(c))}</b><br>${esc(c.zona||'')}<br>${c.modalidad?modNombre(c.modalidad)+'<br>':''}${fechaTxt(c.fecha)}${c.marea?' · Marea '+c.marea.estado.toLowerCase():''}`).addTo(capaPins)});
  if(pts.length)mapa.fitBounds(pts,{padding:[40,40],maxZoom:13})}
 
 /* ---------- CSV ---------- */
 $('#csvBtn').onclick=async()=>{const cs=await todas();if(!cs.length){toast('No hay capturas');return}
- const h=['fecha','especie','talla_cm','peso_kg','nota','lat','lon','zona','marea_estado','marea_altura_m','proxima_marea','proxima_hora','proxima_altura_m','luna_fase','luna_iluminacion_%'];
+ const h=['fecha','especie','talla_cm','peso_kg','modalidad','nota','lat','lon','zona','marea_estado','marea_altura_m','proxima_marea','proxima_hora','proxima_altura_m','luna_fase','luna_iluminacion_%'];
  const q=v=>v==null?'':/[;"\n]/.test(v=String(v))?'"'+v.replace(/"/g,'""')+'"':v;
- const rows=cs.map(c=>[fechaTxt(c.fecha),c.especie,c.talla,c.peso,c.nota,c.gps?.lat,c.gps?.lon,c.zona,c.marea?.estado,c.marea?.altura,c.marea?.proxima?.tipo,c.marea?.proxima&&hora(c.marea.proxima.hora),c.marea?.proxima?.altura,c.luna.fase,c.luna.iluminacion].map(q).join(';'));
+ const rows=cs.map(c=>[fechaTxt(c.fecha),c.especie,c.talla,c.peso,(window.MODALIDADES?.find(m=>m.id===c.modalidad)||{}).n||'',c.nota,c.gps?.lat,c.gps?.lon,c.zona,c.marea?.estado,c.marea?.altura,c.marea?.proxima?.tipo,c.marea?.proxima&&hora(c.marea.proxima.hora),c.marea?.proxima?.altura,c.luna.fase,c.luna.iluminacion].map(q).join(';'));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download='capturas.csv';a.click()};
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
