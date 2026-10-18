@@ -123,5 +123,15 @@ $('#csvBtn').onclick=async()=>{const cs=await todas();if(!cs.length){toast('No h
  const rows=cs.map(c=>[fechaTxt(c.fecha),c.especie,c.talla,c.peso,c.autor?.n||'',(window.MODALIDADES?.find(m=>m.id===c.modalidad)||{}).n||'',c.zonaPesca?(c.zonaPesca.tipo==='otro'&&c.zonaPesca.otro?'Otro: '+c.zonaPesca.otro:ZONAS_PESCA[c.zonaPesca.tipo].n):'',c.zonaPesca?.emb?.n||'',(c.equipo||[]).map(e=>e.n).join(' | '),c.nota,c.gps?.lat,c.gps?.lon,c.zona,c.marea?.estado,c.marea?.altura,c.marea?.proxima?.tipo,c.marea?.proxima&&hora(c.marea.proxima.hora),c.marea?.proxima?.altura,c.luna.fase,c.luna.iluminacion].map(q).join(';'));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download='capturas.csv';a.click()};
 
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+const APP_VERSION='v9';{const v=document.getElementById('appVer');if(v)v.textContent='Pesca '+APP_VERSION}
+if('serviceWorker' in navigator){
+ const habia=!!navigator.serviceWorker.controller;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{
+  if(!habia)return; // primera instalación: no hace falta recargar
+  const ult=+sessionStorage.getItem('swRecarga')||0;if(Date.now()-ult<15000)return; // evita bucles
+  sessionStorage.setItem('swRecarga',Date.now());location.reload()});
+ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+  reg.update().catch(()=>{});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')reg.update().catch(()=>{})});
+ }).catch(()=>{})}
 ir('s-cam');
