@@ -4,8 +4,9 @@ const ESPECIES=['Vieja','Sama','Bocinegro','Abade','Cherne','Mero','Sargo','Sarg
 let foto=null, especieSel='', ultimo=null, mapa=null, capaPins=null;
 
 /* ---------- IndexedDB ---------- */
-const db=new Promise((ok,ko)=>{const r=indexedDB.open('pesca',1);r.onupgradeneeded=()=>r.result.createObjectStore('capturas',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)});
+const db=new Promise((ok,ko)=>{const r=indexedDB.open('pesca',2);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('capturas'))d.createObjectStore('capturas',{keyPath:'id'});if(!d.objectStoreNames.contains('equipo'))d.createObjectStore('equipo',{keyPath:'id'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)});
 async function tx(mode,fn){const d=await db;return new Promise((ok,ko)=>{const t=d.transaction('capturas',mode);const q=fn(t.objectStore('capturas'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>ko(t.error)})}
+window.pescaDB=db;
 const guardar=c=>tx('readwrite',s=>s.put(c)), todas=()=>tx('readonly',s=>s.getAll()), borrar=id=>tx('readwrite',s=>s.delete(id));
 
 /* ---------- Navegación ---------- */
@@ -13,8 +14,9 @@ function ir(id,tab){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!=
  document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('on'));
  if(id==='s-cam'){$('#n-cam').classList.add('on');reset()}
  if(id==='s-hist'){verHist(tab||'L')}
- if(['s-guia','s-guiamod','s-nudos','s-nudo'].includes(id))$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();if(id==='s-guiamod'&&window.verGuiaMod)verGuiaMod();scrollTo(0,0)}
+ if(['s-guia','s-guiamod','s-nudos','s-nudo','s-equipo','s-equipof'].includes(id))$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();if(id==='s-guiamod'&&window.verGuiaMod)verGuiaMod();if(id==='s-equipo'&&window.verEquipo)verEquipo();scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)ir(g.dataset.go,g.dataset.tab)});
+window.toastPesca=(...a)=>toast(...a);
 function toast(m,ms=2800){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,ms)}
 
 /* ---------- 1 Cámara ---------- */
@@ -27,7 +29,7 @@ function pintarChips(){$('#chips').innerHTML=ESPECIES.slice(0,12).map(e=>`<butto
 $('#chips').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;especieSel=e.target.textContent;pintarChips();$('#okBtn').disabled=false});
 $('#okBtn').onclick=()=>abrirFicha(especieSel);
 $('#manBtn').onclick=()=>abrirFicha('',true);
-function abrirFicha(esp,foco){ir('s-ficha');window.modFicha&&modFicha.reset();$('#fimg').src=foto||'';$('#fimg').hidden=!foto;$('#esp').value=esp;if(foco)setTimeout(()=>$('#esp').focus(),50)}
+function abrirFicha(esp,foco){ir('s-ficha');window.modFicha&&modFicha.reset();window.equipoFicha&&equipoFicha.reset();$('#fimg').src=foto||'';$('#fimg').hidden=!foto;$('#esp').value=esp;if(foco)setTimeout(()=>$('#esp').focus(),50)}
 
 /* Punto de enchufe para un modelo de visión.
    Debe devolver [{nombre,confianza}] ordenado o [] si no hay modelo.
@@ -43,7 +45,10 @@ $('#esplist').innerHTML=ESPECIES.map(e=>`<option value="${e}">`).join('');
 /* ---------- Datos automáticos ---------- */
 function gps(){return new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>ok(p.coords),ko,{enableHighAccuracy:true,timeout:20000,maximumAge:60000}):ko(new Error('sin GPS')))}
 async function zona(lat,lon){try{const r=await(await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&accept-language=es`)).json();const a=r.address||{};
- return [a.hamlet||a.village||a.suburb||a.town||a.city||a.municipality||r.name,a.island||a.county||a.state].filter(Boolean).filter((v,i,x)=>x.indexOf(v)===i).join(', ')||'Mar abierto'}catch(e){return 'Zona no disponible'}}
+ const uniq=x=>x.filter(Boolean).filter((v,i,y)=>y.indexOf(v)===i);
+ const z=uniq([a.hamlet||a.village||a.suburb||a.town||a.city||a.municipality||r.name,a.island||a.county||a.state]).join(', ')||'Mar abierto';
+ const gen=uniq([a.municipality||a.city||a.town||a.village,a.island||a.archipelago||a.state]).join(', ');
+ return {z,gen}}catch(e){return {z:'Zona no disponible',gen:''}}}
 async function marea(lat,lon,t=new Date()){
  const r=await(await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level_height_msl&timezone=GMT&past_days=1&forecast_days=2&cell_selection=sea`)).json();
  const T=r.hourly.time.map(s=>Date.parse(s+'Z')),H=r.hourly.sea_level_height_msl;
@@ -59,9 +64,9 @@ function luna(d=new Date()){const S=29.530588853,ref=Date.UTC(2000,0,6,18,14);le
 /* ---------- 2 Guardar ---------- */
 $('#saveBtn').onclick=async()=>{const esp=$('#esp').value.trim();if(!esp){toast('Escribe o elige la especie');$('#esp').focus();return}
  const b=$('#saveBtn');b.disabled=true;b.textContent='⏳ Guardando…';const ahora=new Date();
- const c={id:ahora.getTime()+'',fecha:ahora.toISOString(),especie:esp,talla:num('#talla'),peso:num('#peso'),nota:$('#nota').value.trim(),modalidad:(window.modFicha&&modFicha.get())||'',foto,luna:luna(ahora),gps:null,zona:'',marea:null,errores:[]};
+ const c={id:ahora.getTime()+'',fecha:ahora.toISOString(),especie:esp,talla:num('#talla'),peso:num('#peso'),nota:$('#nota').value.trim(),modalidad:(window.modFicha&&modFicha.get())||'',equipo:(window.equipoFicha&&equipoFicha.get())||[],foto,luna:luna(ahora),gps:null,zona:'',marea:null,errores:[]};
  try{const p=await gps();c.gps={lat:+p.latitude.toFixed(5),lon:+p.longitude.toFixed(5),precision:Math.round(p.accuracy)};
-  const [z,m]=await Promise.allSettled([zona(c.gps.lat,c.gps.lon),marea(c.gps.lat,c.gps.lon,ahora)]);c.zona=z.value||'';
+  const [z,m]=await Promise.allSettled([zona(c.gps.lat,c.gps.lon),marea(c.gps.lat,c.gps.lon,ahora)]);c.zona=z.value?.z||'';c.zonaGen=z.value?.gen||'';
   if(m.status==='fulfilled')c.marea=m.value;else c.errores.push('Marea: '+(m.reason.message||'sin conexión'))}
  catch(e){c.errores.push('GPS: '+(e.message||'permiso denegado'))}
  await guardar(c);window.modFicha&&modFicha.recordar();ultimo=c;b.disabled=false;b.textContent='💾 GUARDAR';confirmar(c)};
@@ -73,14 +78,15 @@ const fechaTxt=iso=>new Date(iso).toLocaleDateString('es-ES',{day:'2-digit',mont
 const sub=c=>[c.especie,c.talla&&c.talla+' cm',c.peso&&String(c.peso).replace('.',',')+' kg'].filter(Boolean).join(' · ');
 function filas(c){const m=c.marea,R=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
  return (m?R('🌊 Marea',m.estado+(m.estado==='Subiendo'?' ↑':' ↓'))+(m.proxima?R('Próxima '+m.proxima.tipo.toLowerCase(),hora(m.proxima.hora)+' · '+fmt(m.proxima.altura)+' m'):'')+R('Altura ahora',fmt(m.altura)+' m'):R('🌊 Marea','No disponible'))
- +(c.modalidad?R('🎣 Modalidad',modNombre(c.modalidad)):'')+R(c.luna.icono+' Luna',c.luna.fase+' '+c.luna.iluminacion+' %')
+ +(c.modalidad?R('🎣 Modalidad',modNombre(c.modalidad)):'')+(c.equipo&&c.equipo.length?R('🧰 Equipo',esc(c.equipo.map(e=>e.n).join(', '))):'')+R(c.luna.icono+' Luna',c.luna.fase+' '+c.luna.iluminacion+' %')
  +R('📍 Zona',c.zona||'—')+R('Coordenadas',c.gps?`${Math.abs(c.gps.lat).toFixed(4)} ${c.gps.lat>=0?'N':'S'}, ${Math.abs(c.gps.lon).toFixed(4)} ${c.gps.lon>=0?'E':'O'}`:'Sin GPS')
  +R('🕒 Fecha',fechaTxt(c.fecha))+(c.nota?R('📝 Nota',esc(c.nota)):'')
  +(c.errores.length?`<div class="small" style="color:#c0392b;margin-top:8px">${c.errores.join('<br>')}</div>`:'')}
 const fmt=v=>String(v).replace('.',',');const esc=s=>s.replace(/[&<>"]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x]));
-function confirmar(c){ir('s-ok');$('#okSub').textContent=sub(c);$('#okData').innerHTML=filas(c)}
+function confirmar(c){$('#okShare').onclick=()=>compartirCaptura(c);ir('s-ok');$('#okSub').textContent=sub(c);$('#okData').innerHTML=filas(c)}
 async function detalle(id){const c=(await todas()).find(x=>x.id===id);ir('s-det');
- $('#det').innerHTML=(c.foto?`<div class="fish photo"><img src="${c.foto}"></div>`:'')+`<div class="t">${esc(sub(c))}</div><div class="card">${filas(c)}</div><button class="btn del" id="delBtn">🗑 Borrar captura</button>`;
+ $('#det').innerHTML=(c.foto?`<div class="fish photo"><img src="${c.foto}"></div>`:'')+`<div class="t">${esc(sub(c))}</div><div class="card">${filas(c)}</div><button class="btn green" id="shBtn">📤 Compartir</button><button class="btn del" id="delBtn">🗑 Borrar captura</button>`;
+ $('#shBtn').onclick=()=>compartirCaptura(c);
  $('#delBtn').onclick=async()=>{if(confirm('¿Borrar esta captura?')){await borrar(id);ir('s-hist')}}}
 
 /* ---------- 4/5 Historial ---------- */
@@ -106,9 +112,9 @@ function pintarMapa(cs){if(!window.L){$('#map').innerHTML='<div class="empty">El
 
 /* ---------- CSV ---------- */
 $('#csvBtn').onclick=async()=>{const cs=await todas();if(!cs.length){toast('No hay capturas');return}
- const h=['fecha','especie','talla_cm','peso_kg','modalidad','nota','lat','lon','zona','marea_estado','marea_altura_m','proxima_marea','proxima_hora','proxima_altura_m','luna_fase','luna_iluminacion_%'];
+ const h=['fecha','especie','talla_cm','peso_kg','modalidad','equipo','nota','lat','lon','zona','marea_estado','marea_altura_m','proxima_marea','proxima_hora','proxima_altura_m','luna_fase','luna_iluminacion_%'];
  const q=v=>v==null?'':/[;"\n]/.test(v=String(v))?'"'+v.replace(/"/g,'""')+'"':v;
- const rows=cs.map(c=>[fechaTxt(c.fecha),c.especie,c.talla,c.peso,(window.MODALIDADES?.find(m=>m.id===c.modalidad)||{}).n||'',c.nota,c.gps?.lat,c.gps?.lon,c.zona,c.marea?.estado,c.marea?.altura,c.marea?.proxima?.tipo,c.marea?.proxima&&hora(c.marea.proxima.hora),c.marea?.proxima?.altura,c.luna.fase,c.luna.iluminacion].map(q).join(';'));
+ const rows=cs.map(c=>[fechaTxt(c.fecha),c.especie,c.talla,c.peso,(window.MODALIDADES?.find(m=>m.id===c.modalidad)||{}).n||'',(c.equipo||[]).map(e=>e.n).join(' | '),c.nota,c.gps?.lat,c.gps?.lon,c.zona,c.marea?.estado,c.marea?.altura,c.marea?.proxima?.tipo,c.marea?.proxima&&hora(c.marea.proxima.hora),c.marea?.proxima?.altura,c.luna.fase,c.luna.iluminacion].map(q).join(';'));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download='capturas.csv';a.click()};
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');

@@ -89,6 +89,7 @@ function fichaHTML(m){return `<div class="mtit">${m.i} ${m.n}</div><div class="m
  <div class="t" style="margin:0 0 6px">¿Cómo sé que hago esto?</div><ul class="mrec">${m.rec.map(r=>`<li>✔ ${r}</li>`).join('')}</ul>
  <div class="t" style="margin:12px 0 6px">Equipo típico</div><div class="mtx">${m.equipo}</div>
  <div class="t" style="margin:12px 0 6px">Especies típicas en Canarias</div><div class="mtx">${m.especies}</div>`}
+window.hojaPesca=hoja;
 window.verModalidad=id=>hoja(fichaHTML(byId(id)));
 
 /* ---------- Asistente ---------- */
