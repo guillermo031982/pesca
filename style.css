@@ -89,3 +89,10 @@ select.inp{appearance:auto}
 .emgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}.emgrid button{height:50px;font-size:26px;border-radius:14px;border:2px solid #c9d7e1;background:#fff}.emgrid button.on{border-color:#0077b6;background:#e3f1f8}
 .zpsug{background:#fff8e6;border-left:4px solid #ffb703;padding:10px 12px;border-radius:10px;margin-top:8px;font-size:15px}
 .zpbox{background:#f4f8fb;border-radius:14px;padding:12px;margin-top:8px}.embmini{width:26px;height:26px;border-radius:6px;object-fit:cover;vertical-align:middle}
+
+/* v7 barra de 5 botones */
+.nav div{min-width:0;padding:0 2px;white-space:nowrap;font-size:12px;position:relative}
+.nav .on:after{content:"";position:absolute;top:-12px;left:22%;right:22%;height:4px;border-radius:0 0 4px 4px;background:#0077b6}
+
+@media (max-width:350px){.nav div{font-size:11px}.nav b{font-size:22px}}
+.csv{white-space:nowrap}

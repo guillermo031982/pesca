@@ -14,7 +14,7 @@ function ir(id,tab){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!=
  document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('on'));
  if(id==='s-cam'){$('#n-cam').classList.add('on');reset()}
  if(id==='s-hist'){verHist(tab||'L')}
- if(['s-guia','s-guiamod','s-nudos','s-nudo','s-equipo','s-equipof'].includes(id))$('#n-nudos').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();if(id==='s-guiamod'&&window.verGuiaMod)verGuiaMod();if(id==='s-equipo'&&window.verEquipo)verEquipo();scrollTo(0,0)}
+ if(['s-guia','s-guiamod','s-nudos','s-nudo'].includes(id))$('#n-nudos').classList.add('on');if(['s-equipo','s-equipof'].includes(id))$('#n-equipo').classList.add('on');if(id==='s-nudos'&&window.verNudos)verNudos();if(id==='s-guiamod'&&window.verGuiaMod)verGuiaMod();if(id==='s-equipo'&&window.verEquipo)verEquipo();scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)ir(g.dataset.go,g.dataset.tab)});
 window.toastPesca=(...a)=>toast(...a);
 function toast(m,ms=2800){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,ms)}

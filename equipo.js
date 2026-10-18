@@ -21,7 +21,7 @@ window.equipoTodos=todos;window.equipoGuardar=guardar;
 const nombre=e=>[e.marca,e.modelo].filter(Boolean).join(' ')||CATS[e.cat].n;
 const resumen=e=>CATS[e.cat].f.map(([k,l])=>e.specs?.[k]?`${l.replace(/ \(.*\)/,'')}: ${e.specs[k]}`:'').filter(Boolean).join(' · ');
 const MODS=()=>window.MODALIDADES||[];
-function irA(id){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!==id);document.querySelectorAll('.nav div').forEach(n=>n.classList.toggle('on',n.id==='n-nudos'));scrollTo(0,0)}
+function irA(id){document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!==id);document.querySelectorAll('.nav div').forEach(n=>n.classList.toggle('on',n.id==='n-equipo'));scrollTo(0,0)}
 
 window.verEquipo=async function(){const all=(await todos()).sort((a,b)=>nombre(a).localeCompare(nombre(b)));
  $('#eqCat').innerHTML=`<button data-c="" class="${!catF?'on':''}">Todo (${all.length})</button>`+Object.entries(CATS).map(([k,c])=>`<button data-c="${k}" class="${catF===k?'on':''}">${c.i} ${c.n}</button>`).join('');

@@ -52,7 +52,7 @@
 <section id="s-det" class="scr" hidden><div class="hd"><span data-go="s-hist">‹</span> Captura</div><div id="det"></div></section>
 <!-- Guía -->
 <section id="s-guia" class="scr" hidden>
- <div class="hd">Guía y equipo</div>
+ <div class="hd">Guía</div>
  <div class="card nk" data-go="s-equipo"><h3>🧰 Mi equipo</h3><div class="small">Cañas, carretes, líneas, señuelos, embarcaciones… y en qué modalidad los usas.</div></div>
  <div class="card nk" data-go="s-nudos"><h3>🪢 Nudos de pesca</h3><div class="small">11 nudos paso a paso con animación.</div></div>
  <div class="card nk" data-go="s-guiamod"><h3>🎣 Modalidades de pesca</h3><div class="small">Qué es cada una, cómo reconocerla, equipo y especies en Canarias.</div></div>
@@ -60,7 +60,7 @@
 </section>
 <section id="s-guiamod" class="scr" hidden><div class="hd"><span data-go="s-guia" style="cursor:pointer">‹</span> Modalidades</div><div id="gmLista"></div></section>
 <!-- Equipo -->
-<section id="s-equipo" class="scr" hidden><div class="hd"><span data-go="s-guia" style="cursor:pointer">‹</span> Mi equipo <button class="csv" id="eqNuevo">＋ Añadir</button></div>
+<section id="s-equipo" class="scr" hidden><div class="hd">Mi equipo <button class="csv" id="eqNuevo">＋ Añadir</button></div>
  <div class="chips fil hfil" id="eqCat"></div><div class="chips fil hfil" id="eqMod"></div><div id="eqLista"></div></section>
 <section id="s-equipof" class="scr" hidden><div class="hd"><span data-go="s-equipo" style="cursor:pointer">‹</span> <span id="eqTit">Nuevo equipo</span></div><div id="eqForm"></div></section>
 <!-- Nudos -->
@@ -71,7 +71,7 @@
  <div id="nLista"></div>
 </section>
 <section id="s-nudo" class="scr" hidden><div class="hd"><span data-go="s-nudos" style="cursor:pointer">‹</span> <span id="nTit"></span></div><div id="nDet"></div></section>
-<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div><div data-go="s-guia" id="n-nudos"><b>📖</b>Guía</div></nav>
+<nav class="nav"><div data-go="s-cam" id="n-cam"><b>📷</b>Cámara</div><div data-go="s-hist" data-tab="L" id="n-hist"><b>📋</b>Historial</div><div data-go="s-hist" data-tab="M" id="n-map"><b>🗺️</b>Mapa</div><div data-go="s-equipo" id="n-equipo"><b>🧰</b>Equipo</div><div data-go="s-guia" id="n-nudos"><b>📖</b>Guía</div></nav>
 <div id="toast" hidden></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js"></script>
