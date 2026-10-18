@@ -22,13 +22,17 @@ async function tarjeta(c,conZona){const cv=document.createElement('canvas');cv.w
  if(med){x.font='bold 52px system-ui,sans-serif';x.fillStyle='#ffb703';x.fillText(med,80,fh-8)}
  // datos
  const filas=[];
+ const conDesde=localStorage.getItem('compartirDesde')!=='no',conAutor=localStorage.getItem('compartirAutor')!=='no';
+ if(conAutor&&c.autor)filas.push(['Pescador',(c.autor.emoji&&!(window.usuarioPorId&&usuarioPorId(c.autor.id)?.foto)?c.autor.emoji+' ':'')+c.autor.n,'autor']);
  if(c.modalidad&&window.modNombre)filas.push(['Modalidad',modNombre(c.modalidad)]);
+ if(conDesde&&c.zonaPesca&&window.zpNombre)filas.push(['Desde',zpNombre(c.zonaPesca)]);
  if(c.marea)filas.push(['Marea',`${c.marea.estado==='Subiendo'?'🌊 ↑':'🌊 ↓'} ${c.marea.estado} · ${String(c.marea.altura).replace('.',',')} m`]);
  if(c.luna)filas.push(['Luna',`${c.luna.icono} ${c.luna.fase} · ${c.luna.iluminacion} %`]);
  const d=new Date(c.fecha);filas.push(['Fecha',`📅 ${d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})} · ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`]);
  const zg=zonaGeneral(c);if(conZona&&zg)filas.push(['Zona','📍 '+zg]);
+ const uF=conAutor&&c.autor&&window.usuarioPorId?await cargar(usuarioPorId(c.autor.id)?.foto):null;
  let y=fh+70;const rowH=Math.min(92,(H-200-y)/Math.max(1,filas.length));
- filas.forEach(([k,v])=>{x.fillStyle='#9fd3e8';x.font='600 34px system-ui,sans-serif';x.fillText(k.toUpperCase(),80,y+10);x.fillStyle='#fff';ajustar(x,v,W-420,44,'bold');x.fillText(v,360,y+12);
+ filas.forEach(([k,v,tipo])=>{x.fillStyle='#9fd3e8';x.font='600 34px system-ui,sans-serif';x.fillText(k.toUpperCase(),80,y+10);let vx=360;if(tipo==='autor'&&uF){x.save();x.beginPath();x.arc(384,y-2,26,0,Math.PI*2);x.clip();x.drawImage(uF,358,y-28,52,52);x.restore();vx=424}x.fillStyle='#fff';ajustar(x,v,W-80-vx,44,'bold');x.fillText(v,vx,y+12);
   x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=2;x.beginPath();x.moveTo(80,y+38);x.lineTo(W-80,y+38);x.stroke();y+=rowH});
  // pie
  x.fillStyle='#0077b6';rr(0,x,40,H-130,W-80,90,45);x.fill();
@@ -42,11 +46,14 @@ window.compartirCaptura=async function(c){
  let conZona=localStorage.getItem('compartirZona')!=='no';
  hojaPesca(`<div class="mtit">📤 Compartir captura</div><div class="shprev"><img id="shImg" alt="Vista previa de la tarjeta"></div>
  <label class="shchk"><input type="checkbox" id="shZona" ${conZona?'checked':''}> Mostrar zona general (isla/municipio)</label>
+ ${c.zonaPesca?`<label class="shchk" style="margin-top:6px"><input type="checkbox" id="shDesde" ${localStorage.getItem('compartirDesde')!=='no'?'checked':''}> Mostrar desde dónde pesqué</label>`:''}
+ ${c.autor?`<label class="shchk" style="margin-top:6px"><input type="checkbox" id="shAutor" ${localStorage.getItem('compartirAutor')!=='no'?'checked':''}> Mostrar mi nombre</label>`:''}
  <div class="small" style="margin:4px 2px 12px">Nunca se incluyen coordenadas exactas.</div>
  <button class="btn green" style="width:100%;margin:0 0 10px" id="shGo">📤 Compartir</button><button class="btn sec" style="width:100%;margin:0" id="shDl">⬇ Descargar imagen</button>`);
  let b=null;const pinta=async()=>{const cv=await tarjeta(c,conZona);b=await blob(cv);const im=document.getElementById('shImg');if(im){if(im.src)URL.revokeObjectURL(im.src);im.src=URL.createObjectURL(b)}};
  await pinta();
  document.getElementById('shZona').onchange=async e=>{conZona=e.target.checked;localStorage.setItem('compartirZona',conZona?'si':'no');await pinta()};
+ [['shDesde','compartirDesde'],['shAutor','compartirAutor']].forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.onchange=async e=>{localStorage.setItem(k,e.target.checked?'si':'no');await pinta()}});
  document.getElementById('shDl').onclick=()=>descargar(b,nombreFich(c));
  document.getElementById('shGo').onclick=async()=>{const f=new File([b],nombreFich(c),{type:'image/png'});
   const txt=`${c.especie}${c.talla?' de '+String(c.talla).replace('.',',')+' cm':''} 🎣`;

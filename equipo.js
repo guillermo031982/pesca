@@ -9,6 +9,7 @@ const CATS={
  linea:{n:'Líneas / hilos',i:'🧵',f:[['tipo','Tipo',['','Monofilamento','Fluorocarbono','Trenzado','Otro']],['diametro','Diámetro (mm)','Ej. 0,25','decimal'],['libraje','Resistencia (lb o kg)','Ej. 20 lb'],['metros','Metros','Ej. 300','numeric'],['color','Color','Ej. verde']]},
  senuelo:{n:'Señuelos',i:'🐟',f:[['tipo','Tipo',['','Vinilo','Minnow / pececillo','Paseante (superficie)','Popper','Jig metálico','Cucharilla','Pulpito / calamar','Egi (potera)','Otro']],['peso','Peso (g)','Ej. 20','decimal'],['tamano','Tamaño (cm)','Ej. 9','decimal'],['color','Color','Ej. sardina']]},
  anzuelo:{n:'Anzuelos / plomos',i:'🪝',f:[['tipo','Tipo',['','Anzuelo','Anzuelo circular','Anzuelo triple','Plomo','Emerillón','Bajo montado','Otro']],['tamano','Tamaño / número','Ej. nº 4 o 2/0'],['peso','Peso (g)','Ej. 100','decimal'],['cantidad','Cantidad','Ej. 10','numeric']]},
+ embarcacion:{n:'Mis embarcaciones',i:'🚤',f:[['tipo','Tipo',['','Barco','Kayak','Pato (float tube)']],['eslora','Eslora (m)','Ej. 5,8','decimal'],['motor','Motor','Ej. 60 CV / sin motor'],['matricula','Matrícula o nombre','Ej. La Gaviota']]},
  otros:{n:'Otros',i:'🎒',f:[['tipo','Qué es','Ej. sacadera, nevera, frontal…']]}};
 let catF='',modF='',editId=null,fotoTmp=null,modsTmp=[];
 async function store(mode){const d=await window.pescaDB;return d.transaction('equipo',mode).objectStore('equipo')}
@@ -16,7 +17,7 @@ const req=r=>new Promise((ok,ko)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>ko
 const todos=async()=>req((await store('readonly')).getAll());
 const guardar=async e=>req((await store('readwrite')).put(e));
 const borrar=async id=>req((await store('readwrite')).delete(id));
-window.equipoTodos=todos;
+window.equipoTodos=todos;window.equipoGuardar=guardar;
 const nombre=e=>[e.marca,e.modelo].filter(Boolean).join(' ')||CATS[e.cat].n;
 const resumen=e=>CATS[e.cat].f.map(([k,l])=>e.specs?.[k]?`${l.replace(/ \(.*\)/,'')}: ${e.specs[k]}`:'').filter(Boolean).join(' · ');
 const MODS=()=>window.MODALIDADES||[];
@@ -67,7 +68,7 @@ function reducir(f,max=800){return new Promise(ok=>{const i=new Image();i.onload
 
 /* ---------- Selector de equipo en la ficha de captura ---------- */
 let selEq=[],cache=[];
-async function pintaSel(){cache=await todos();$('#eqLab').hidden=$('#eqSel').hidden=!cache.length;
+async function pintaSel(){cache=(await todos()).filter(e=>e.cat!=='embarcacion');$('#eqLab').hidden=$('#eqSel').hidden=!cache.length;
  const mod=window.modFicha?modFicha.get():'';const orden=[...cache].sort((a,b)=>((b.mods||[]).includes(mod)-(a.mods||[]).includes(mod))||nombre(a).localeCompare(nombre(b)));
  $('#eqSel').innerHTML=orden.map(e=>`<button type="button" data-id="${e.id}" class="${selEq.includes(e.id)?'on':''}">${CATS[e.cat].i} ${esc(nombre(e))}</button>`).join('')}
 $('#eqSel').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;const id=b.dataset.id;selEq=selEq.includes(id)?selEq.filter(x=>x!==id):[...selEq,id];b.classList.toggle('on')});

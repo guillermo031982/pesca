@@ -26,6 +26,7 @@
   <div class="lab">Talla (cm) · opcional</div><input class="inp" id="talla" type="text" inputmode="decimal" placeholder="Ej. 34">
   <div class="lab">Peso (kg) · opcional</div><input class="inp" id="peso" type="text" inputmode="decimal" placeholder="Ej. 1,2">
   <div class="lab mlab">Modalidad · opcional <button class="ibtn" id="modInfo" type="button" aria-label="¿Qué es cada modalidad?">ⓘ</button></div><div class="chips msel" id="modSel"></div><button type="button" class="lnk" id="modAsis">🧭 No sé qué modalidad hago</button>
+  <div class="lab">Zona de pesca (desde dónde) · opcional</div><div class="chips msel" id="zpSel"></div><div class="zpsug" id="zpSug" hidden></div><div id="zpExtra"></div>
   <div class="lab" id="eqLab">Equipo usado · opcional</div><div class="chips msel" id="eqSel"></div>
   <div class="lab">Nota · opcional</div><input class="inp" id="nota" placeholder="Cebo, aparejo…">
  </div>
@@ -42,7 +43,7 @@
 <!-- 4/5 Historial -->
 <section id="s-hist" class="scr" hidden>
  <div class="hd">Historial <button class="csv" id="csvBtn">⬇ CSV</button></div>
- <div class="chips fil hfil" id="hFiltro"></div>
+ <div class="chips fil hfil" id="hFiltroU"></div><div class="chips fil hfil" id="hFiltro"></div><div class="chips fil hfil" id="hFiltroZ"></div>
  <div class="seg"><div id="tabL" class="on">Lista</div><div id="tabM">Mapa</div></div>
  <div id="list"></div>
  <div id="mapwrap" hidden><div id="map"></div></div>
@@ -52,7 +53,7 @@
 <!-- Guía -->
 <section id="s-guia" class="scr" hidden>
  <div class="hd">Guía y equipo</div>
- <div class="card nk" data-go="s-equipo"><h3>🧰 Mi equipo</h3><div class="small">Cañas, carretes, líneas, señuelos… y en qué modalidad los usas.</div></div>
+ <div class="card nk" data-go="s-equipo"><h3>🧰 Mi equipo</h3><div class="small">Cañas, carretes, líneas, señuelos, embarcaciones… y en qué modalidad los usas.</div></div>
  <div class="card nk" data-go="s-nudos"><h3>🪢 Nudos de pesca</h3><div class="small">11 nudos paso a paso con animación.</div></div>
  <div class="card nk" data-go="s-guiamod"><h3>🎣 Modalidades de pesca</h3><div class="small">Qué es cada una, cómo reconocerla, equipo y especies en Canarias.</div></div>
  <div class="card nk" id="gAsis"><h3>🧭 No sé qué modalidad hago</h3><div class="small">Responde 2–3 preguntas y te lo decimos.</div></div>
@@ -77,4 +78,6 @@
 <script src="nudos.js"></script>
 <script src="modalidades.js"></script>
 <script src="compartir.js"></script>
-<script src="equipo.js"></script></body></html>
+<script src="equipo.js"></script>
+<script src="zonapesca.js"></script>
+<script src="perfil.js"></script></body></html>
